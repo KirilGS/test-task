@@ -109,6 +109,18 @@ export function envFilePath(): string {
   return path.join(projectRoot(), ".env");
 }
 
+export function loadProjectEnv(): AppEnv {
+  const filePath = envFilePath();
+  if (existsSync(filePath)) {
+    process.loadEnvFile(filePath);
+  }
+  const source: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(process.env)) {
+    source[key] = value;
+  }
+  return validateEnv(source);
+}
+
 export function validateEnv(config: Record<string, unknown>): AppEnv {
   const root = projectRoot();
   const source = {
