@@ -1,0 +1,21 @@
+{
+  "name": "support-summary",
+  "private": true,
+  "engines": {
+    "node": ">=24"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build -w @support-summary/core && npm run build -w api && npm run build -w web",
+    "test": "npm run test --workspaces --if-present",
+    "test:e2e": "npm run test:e2e -w api",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "dev": "concurrently \"npm run dev -w @support-summary/core\" \"npm run start:dev -w api\" \"npm run dev -w web\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

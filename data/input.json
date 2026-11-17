@@ -1,0 +1,72 @@
+{
+  "title": "Случаи из задания",
+  "snapshotAt": "2026-11-16T10:00:00+03:00",
+  "cases": [
+    {
+      "id": "С-17",
+      "type": "onboarding",
+      "crm": {
+        "firstShiftDate": "2026-11-17",
+        "documentsStatus": "pending",
+        "note": "Первый выход - завтра. Документы ожидаются."
+      },
+      "messages": [
+        {
+          "author": "employee",
+          "text": "Вчера отправил фотографии документов руководителю в личку.",
+          "sentAt": null
+        }
+      ]
+    },
+    {
+      "id": "С-24",
+      "type": "offboarding",
+      "crm": {
+        "lastWorkDate": "2026-11-16",
+        "managerConfirmed": false,
+        "note": "Последний рабочий день - сегодня. Подтверждение ответственного руководителя отсутствует."
+      },
+      "messages": [
+        {
+          "author": "employee",
+          "text": "С руководителем всё обсудили, он в курсе.",
+          "sentAt": null
+        }
+      ]
+    },
+    {
+      "id": "П-08",
+      "type": "card_delivery",
+      "crm": {
+        "status": "in_transit",
+        "plannedBy": "2026-11-16T10:00:00+03:00",
+        "acceptedAt": null,
+        "note": "Доставка на точку запланирована сегодня до 10:00. Статус «В пути»."
+      },
+      "messages": [
+        {
+          "author": "courier",
+          "text": "Задерживаюсь, раньше 13:00 не приеду.",
+          "sentAt": null
+        }
+      ]
+    },
+    {
+      "id": "П-09",
+      "type": "card_delivery",
+      "crm": {
+        "status": "accepted",
+        "plannedBy": null,
+        "acceptedAt": "2026-11-16T09:20:00+03:00",
+        "note": "Статус «Принято». Приёмка подтверждена сегодня в 09:20."
+      },
+      "messages": [
+        {
+          "author": "recipient",
+          "text": "Карты получили, количество проверили.",
+          "sentAt": null
+        }
+      ]
+    }
+  ]
+}

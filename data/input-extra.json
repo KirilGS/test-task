@@ -1,0 +1,99 @@
+{
+  "title": "Новые случаи для проверки",
+  "snapshotAt": "2026-11-16T10:00:00+03:00",
+  "cases": [
+    {
+      "id": "С-31",
+      "type": "onboarding",
+      "crm": {
+        "firstShiftDate": "2026-11-20",
+        "documentsStatus": "received",
+        "note": "Документы получены."
+      },
+      "messages": []
+    },
+    {
+      "id": "С-32",
+      "type": "offboarding",
+      "crm": {
+        "lastWorkDate": "2026-11-13",
+        "managerConfirmed": false,
+        "note": "Подтверждение руководителя отсутствует."
+      },
+      "messages": [
+        {
+          "author": "manager",
+          "text": "Подтверждаю, забыл отметить",
+          "sentAt": null
+        }
+      ]
+    },
+    {
+      "id": "С-33",
+      "type": "onboarding",
+      "crm": {
+        "firstShiftDate": "2026-11-18",
+        "documentsStatus": "pending",
+        "note": "Документы ожидаются."
+      },
+      "messages": [
+        {
+          "author": "employee",
+          "text": "Не знаю, отправлял ли документы, уточню",
+          "sentAt": null
+        }
+      ]
+    },
+    {
+      "id": "П-41",
+      "type": "card_delivery",
+      "crm": {
+        "status": "in_transit",
+        "plannedBy": "2026-11-16T15:00:00+03:00",
+        "acceptedAt": null,
+        "note": "Статус «В пути»."
+      },
+      "messages": [
+        {
+          "author": "courier",
+          "text": "Уже у точки, жду получателя",
+          "sentAt": null
+        }
+      ]
+    },
+    {
+      "id": "П-42",
+      "type": "card_delivery",
+      "crm": {
+        "status": "accepted",
+        "plannedBy": null,
+        "acceptedAt": "2026-11-16T08:45:00+03:00",
+        "note": "Статус «Принято»."
+      },
+      "messages": [
+        {
+          "author": "recipient",
+          "text": "Пришло 48 карт вместо 50",
+          "sentAt": null
+        }
+      ]
+    },
+    {
+      "id": "П-43",
+      "type": "card_delivery",
+      "crm": {
+        "status": "in_transit",
+        "plannedBy": "2026-11-16T18:00:00+03:00",
+        "acceptedAt": null,
+        "note": "Статус «В пути»."
+      },
+      "messages": [
+        {
+          "author": "recipient",
+          "text": "Карты уже у нас",
+          "sentAt": null
+        }
+      ]
+    }
+  ]
+}
