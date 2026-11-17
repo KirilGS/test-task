@@ -5,6 +5,7 @@
   --font-size: 1rem;
   --font-size-sm: 0.875rem;
   --font-size-lg: 1.25rem;
+  --font-size-xl: 1.75rem;
   --line-height: 1.5;
 
   --space-1: 0.25rem;
@@ -116,4 +117,12 @@ textarea {
   background: var(--color-surface);
   color: var(--color-text);
   border-color: var(--color-border);
+}
+
+.button-primary:disabled,
+.button-secondary:disabled {
+  background: #e7e5e4;
+  color: #44403c;
+  border-color: #d6d3d1;
+  cursor: not-allowed;
 }

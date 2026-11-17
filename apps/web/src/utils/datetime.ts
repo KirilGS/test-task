@@ -103,3 +103,11 @@ export function fromInputValue(value: string): string | null {
   }
   return `${year}-${month}-${day}T${hour}:${minute}:${second}+03:00`
 }
+
+export function formatFileDate(iso: string): string {
+  const parts = clockParts(iso)
+  if (parts === null) {
+    return ''
+  }
+  return `${parts.day}-${parts.month}-${parts.year}`
+}

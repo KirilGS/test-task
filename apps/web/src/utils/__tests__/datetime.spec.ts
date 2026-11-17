@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatMsk, fromInputValue, toInputValue } from '../datetime'
+import { formatFileDate, formatMsk, fromInputValue, toInputValue } from '../datetime'
 
 describe('дата и время по Москве', () => {
   it('показывает момент со смещением как московское время', () => {
@@ -19,6 +19,10 @@ describe('дата и время по Москве', () => {
   it('собирает момент со смещением Москвы', () => {
     expect(fromInputValue('2026-11-16T10:00')).toBe('2026-11-16T10:00:00+03:00')
     expect(fromInputValue('2026-11-16T10:00:30')).toBe('2026-11-16T10:00:30+03:00')
+  })
+
+  it('даёт дату для имени файла', () => {
+    expect(formatFileDate('2026-11-16T07:00:00.000Z')).toBe('16-11-2026')
   })
 
   it('не принимает несуществующий день', () => {
