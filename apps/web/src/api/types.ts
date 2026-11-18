@@ -11,6 +11,7 @@ import type {
 export type ApiFailure = {
   message: string
   fieldErrors: Record<string, string>
+  status: number
 }
 
 export type RuleInfo = {

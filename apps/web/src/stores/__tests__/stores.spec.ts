@@ -105,7 +105,7 @@ describe('справочник', () => {
 
   it('показывает сообщение, если сервер недоступен', async () => {
     vi.mocked(getMeta).mockRejectedValue(
-      new ApiError({ message: OFFLINE_MESSAGE, fieldErrors: {} }),
+      new ApiError({ message: OFFLINE_MESSAGE, fieldErrors: {}, status: 0 }),
     )
     const store = useMetaStore()
     await store.retry()

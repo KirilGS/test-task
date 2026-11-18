@@ -30,11 +30,13 @@ const UNREADABLE_MESSAGE = 'Не получилось прочитать отв�
 
 export class ApiError extends Error {
   readonly fieldErrors: Record<string, string>
+  readonly status: number
 
   constructor(failure: ApiFailure) {
     super(failure.message)
     this.name = 'ApiError'
     this.fieldErrors = failure.fieldErrors
+    this.status = failure.status
   }
 }
 
@@ -47,11 +49,12 @@ export function errorMessage(reason: unknown): string {
 
 export function failureFromStatus(status: number, body: unknown): ApiFailure {
   if (status >= 500) {
-    return { message: SERVER_FAILURE_MESSAGE, fieldErrors: {} }
+    return { message: SERVER_FAILURE_MESSAGE, fieldErrors: {}, status }
   }
   return {
     message: messageFrom(body) ?? SERVER_FAILURE_MESSAGE,
     fieldErrors: fieldErrorsFrom(body),
+    status,
   }
 }
 
@@ -82,7 +85,7 @@ async function request(path: string, method: Method, body?: unknown): Promise<un
   try {
     response = await fetch(path, { method, headers, body: payload })
   } catch {
-    throw new ApiError({ message: OFFLINE_MESSAGE, fieldErrors: {} })
+    throw new ApiError({ message: OFFLINE_MESSAGE, fieldErrors: {}, status: 0 })
   }
 
   const parsed = await readJson(response)
@@ -93,7 +96,7 @@ async function request(path: string, method: Method, body?: unknown): Promise<un
 }
 
 function unreadable(): never {
-  throw new ApiError({ message: UNREADABLE_MESSAGE, fieldErrors: {} })
+  throw new ApiError({ message: UNREADABLE_MESSAGE, fieldErrors: {}, status: 0 })
 }
 
 function one<T>(value: unknown, check: (item: unknown) => item is T): T {
