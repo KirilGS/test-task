@@ -1,0 +1,5 @@
+# SITE_ADDRESS — домен (сертификат HTTPS выпускается автоматически) или :80 (без домена, только HTTP).
+{$SITE_ADDRESS} {
+	encode gzip
+	reverse_proxy app:3000
+}

@@ -1,0 +1,34 @@
+# Дополнение к docker-compose.yml для своего сервера (VPS).
+# Подключается строкой COMPOSE_FILE в .env, см. docs/deploy.md.
+# Наружу открыты только порты Caddy. Порты приложения и базы не публикуются:
+# Docker открывает опубликованные порты в обход брандмауэра ufw.
+
+services:
+  mongo:
+    ports: !reset []
+
+  app:
+    ports: !reset []
+    environment:
+      TRUST_PROXY: "true"
+
+  caddy:
+    image: caddy:2
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      app:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  caddy-data:
+  caddy-config:
