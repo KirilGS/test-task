@@ -410,6 +410,50 @@ describe("сервер", () => {
     expect(isRecord(item) && isRecord(item.feedback) && item.feedback.correct).toBe(1);
   });
 
+  it("отдаёт сводки без набора и комментарии к ошибкам", async () => {
+    const task = await demoTask(app);
+    const created = await app.inject({
+      method: "POST",
+      url: "/api/summaries",
+      headers: withAuth(),
+      payload: { datasetId: task.id },
+    });
+    const summary = readJson(created);
+    if (!isSummaryBody(summary)) {
+      throw new Error("Сводка для списка пришла в неожиданном виде");
+    }
+
+    const saved = await app.inject({
+      method: "POST",
+      url: `/api/summaries/${summary.id}/feedback`,
+      headers: withAuth(),
+      payload: { caseId: "С-24", verdict: "wrong", comment: "Срок указан неверно" },
+    });
+    expect(saved.statusCode).toBe(201);
+
+    const list = await app.inject({
+      method: "GET",
+      url: "/api/summaries",
+      headers: withAuth(),
+    });
+    expect(list.statusCode).toBe(200);
+    const payload = readJson(list);
+    if (!Array.isArray(payload)) {
+      throw new Error("Общий список сводок пришёл в неожиданном виде");
+    }
+    const item = payload.find((entry) => isRecord(entry) && entry.id === summary.id);
+    expect(isRecord(item) && isRecord(item.feedback) && item.feedback.wrong).toBe(1);
+    expect(isRecord(item) && Array.isArray(item.remarks)).toBe(true);
+    if (!isRecord(item) || !Array.isArray(item.remarks)) {
+      return;
+    }
+    const remark = item.remarks.find(
+      (entry) => isRecord(entry) && entry.comment === "Срок указан неверно",
+    );
+    expect(isRecord(remark) && remark.verdict).toBe("wrong");
+    expect(isRecord(remark) && remark.caseId).toBe("С-24");
+  });
+
   it("не показывает фиктивный ключ в справочнике", async () => {
     const response = await app.inject({ method: "GET", url: "/api/meta", headers: withAuth() });
     expect(response.statusCode).toBe(200);

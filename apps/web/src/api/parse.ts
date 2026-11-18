@@ -304,6 +304,18 @@ export function isSummaryView(value: unknown): value is SummaryView {
   )
 }
 
+function isRemark(value: unknown): boolean {
+  if (!isRecord(value)) {
+    return false
+  }
+  const verdictOk = value.verdict === 'wrong' || value.verdict === 'missed'
+  return (
+    (typeof value.caseId === 'string' || value.caseId === null) &&
+    verdictOk &&
+    typeof value.comment === 'string'
+  )
+}
+
 export function isSummaryListItem(value: unknown): value is SummaryListItem {
   if (!isRecord(value) || !hasSummaryCard(value) || !isRecord(value.feedback)) {
     return false
@@ -312,7 +324,9 @@ export function isSummaryListItem(value: unknown): value is SummaryListItem {
   return (
     isFiniteNumber(feedback.correct) &&
     isFiniteNumber(feedback.wrong) &&
-    isFiniteNumber(feedback.missed)
+    isFiniteNumber(feedback.missed) &&
+    Array.isArray(value.remarks) &&
+    value.remarks.every(isRemark)
   )
 }
 

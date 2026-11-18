@@ -25,6 +25,7 @@ import { AI_CONFIG, AI_FETCH } from "./summaries.tokens";
 import type {
   SummaryDocument,
   SummaryListItem,
+  SummaryRemark,
   SummaryView,
 } from "./summaries.types";
 
@@ -44,6 +45,7 @@ type SummaryListRaw = {
   correct: number;
   wrong: number;
   missed: number;
+  remarks: unknown;
 };
 
 @Injectable()
@@ -58,6 +60,7 @@ export class SummariesService implements OnModuleInit {
 
   async onModuleInit(): Promise<void> {
     await this.collection().createIndex({ datasetId: 1, createdAt: -1 });
+    await this.collection().createIndex({ createdAt: -1 });
   }
 
   async create(raw: unknown, mode: "ai" | "no-ai"): Promise<SummaryView> {
@@ -105,9 +108,11 @@ export class SummariesService implements OnModuleInit {
       this.invalid(parsed.errors);
     }
 
+    const filter =
+      parsed.datasetId === null ? {} : { datasetId: new ObjectId(parsed.datasetId) };
     const rows = await this.collection()
       .aggregate<SummaryListRaw>([
-        { $match: { datasetId: new ObjectId(parsed.datasetId) } },
+        { $match: filter },
         { $sort: { createdAt: -1 } },
         { $limit: parsed.limit },
         {
@@ -122,6 +127,23 @@ export class SummariesService implements OnModuleInit {
             correct: verdictCount("correct"),
             wrong: verdictCount("wrong"),
             missed: verdictCount("missed"),
+            remarks: {
+              $map: {
+                input: {
+                  $filter: {
+                    input: { $ifNull: ["$feedback", []] },
+                    as: "item",
+                    cond: { $in: ["$$item.verdict", ["wrong", "missed"]] },
+                  },
+                },
+                as: "item",
+                in: {
+                  caseId: "$$item.caseId",
+                  verdict: "$$item.verdict",
+                  comment: "$$item.comment",
+                },
+              },
+            },
           },
         },
       ])
@@ -137,6 +159,7 @@ export class SummariesService implements OnModuleInit {
       rejectedByCase: row.rejectedByCase,
       warnings: row.warnings,
       feedback: { correct: row.correct, wrong: row.wrong, missed: row.missed },
+      remarks: remarksFrom(row.remarks),
     }));
   }
 
@@ -216,6 +239,33 @@ export class SummariesService implements OnModuleInit {
   private fail(status: HttpStatus, message: string): never {
     throw new HttpException({ message }, status);
   }
+}
+
+function remarksFrom(value: unknown): SummaryRemark[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const remarks: SummaryRemark[] = [];
+  for (const item of value) {
+    if (isRemark(item)) {
+      remarks.push({ caseId: item.caseId, verdict: item.verdict, comment: item.comment });
+    }
+  }
+  return remarks;
+}
+
+function isRemark(
+  value: unknown,
+): value is { caseId: string | null; verdict: "wrong" | "missed"; comment: string } {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  if (!("caseId" in value) || !("verdict" in value) || !("comment" in value)) {
+    return false;
+  }
+  const caseOk = typeof value.caseId === "string" || value.caseId === null;
+  const verdictOk = value.verdict === "wrong" || value.verdict === "missed";
+  return caseOk && verdictOk && typeof value.comment === "string";
 }
 
 function verdictCount(verdict: "correct" | "wrong" | "missed") {

@@ -103,10 +103,12 @@ export function parseFeedback(
 export function parseSummaryListQuery(
   datasetId: unknown,
   limit: unknown,
-): { ok: true; datasetId: string; limit: number } | { ok: false; errors: FieldError[] } {
+): { ok: true; datasetId: string | null; limit: number } | { ok: false; errors: FieldError[] } {
   const errors: FieldError[] = [];
   let parsedId: string | null = null;
-  if (typeof datasetId === "string" && OBJECT_ID.test(datasetId)) {
+  if (datasetId === undefined) {
+    parsedId = null;
+  } else if (typeof datasetId === "string" && OBJECT_ID.test(datasetId)) {
     parsedId = datasetId;
   } else {
     errors.push({ path: "datasetId", message: "Неверная ссылка на набор" });
@@ -125,7 +127,7 @@ export function parseSummaryListQuery(
     }
   }
 
-  if (parsedId === null || errors.length > 0) {
+  if (errors.length > 0) {
     return { ok: false, errors };
   }
   return { ok: true, datasetId: parsedId, limit: parsedLimit };

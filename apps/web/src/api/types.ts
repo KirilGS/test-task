@@ -85,6 +85,12 @@ export type SummaryView = {
   feedback: SummaryFeedbackView[]
 }
 
+export type SummaryRemark = {
+  caseId: string | null
+  verdict: 'wrong' | 'missed'
+  comment: string
+}
+
 export type SummaryListItem = {
   id: string
   datasetId: string
@@ -99,6 +105,7 @@ export type SummaryListItem = {
     wrong: number
     missed: number
   }
+  remarks: SummaryRemark[]
 }
 
 export type SummaryCreateInput = {

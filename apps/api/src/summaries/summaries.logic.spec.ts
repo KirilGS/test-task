@@ -53,6 +53,12 @@ describe("запрос сводки", () => {
     });
     const tooMany = parseSummaryListQuery("507f1f77bcf86cd799439011", "51");
     expect(tooMany.ok).toBe(false);
+    expect(parseSummaryListQuery(undefined, undefined)).toEqual({
+      ok: true,
+      datasetId: null,
+      limit: 20,
+    });
+    expect(parseSummaryListQuery("", undefined).ok).toBe(false);
   });
 
   it("сбрасывает суточный счётчик в полночь по Москве", () => {

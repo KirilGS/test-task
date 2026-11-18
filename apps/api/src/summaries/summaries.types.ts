@@ -44,6 +44,12 @@ export type SummaryView = {
   feedback: SummaryFeedbackView[];
 };
 
+export type SummaryRemark = {
+  caseId: string | null;
+  verdict: "wrong" | "missed";
+  comment: string;
+};
+
 export type SummaryListItem = {
   id: string;
   datasetId: string;
@@ -54,4 +60,5 @@ export type SummaryListItem = {
   rejectedByCase: Record<string, number>;
   warnings: string[];
   feedback: { correct: number; wrong: number; missed: number };
+  remarks: SummaryRemark[];
 };

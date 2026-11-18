@@ -164,14 +164,16 @@ export function createSummaryWithAi(input: SummaryCreateInput): Promise<SummaryV
   return request('/api/summaries/ai', 'POST', input).then((body) => one(body, isSummaryView))
 }
 
-export function listSummaries(datasetId: string, limit?: number): Promise<SummaryListItem[]> {
-  const query = new URLSearchParams({ datasetId })
+export function listSummaries(datasetId?: string, limit?: number): Promise<SummaryListItem[]> {
+  const query = new URLSearchParams()
+  if (datasetId !== undefined) {
+    query.set('datasetId', datasetId)
+  }
   if (limit !== undefined) {
     query.set('limit', String(limit))
   }
-  return request(`/api/summaries?${query.toString()}`, 'GET').then((body) =>
-    many(body, isSummaryListItem),
-  )
+  const suffix = query.size > 0 ? `?${query.toString()}` : ''
+  return request(`/api/summaries${suffix}`, 'GET').then((body) => many(body, isSummaryListItem))
 }
 
 export function getSummary(id: string): Promise<SummaryView> {
