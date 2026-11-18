@@ -62,7 +62,7 @@ onMounted(sync)
   width: min(32rem, calc(100vw - 2rem));
   padding: var(--space-5);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-card);
   background: var(--color-surface);
   color: var(--color-text);
 }

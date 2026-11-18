@@ -127,34 +127,54 @@ function scoreText(item: SummaryListItem): string {
 
 <template>
   <main class="page">
-    <h1>Проверка</h1>
+    <div class="intro">
+      <h1>Проверка</h1>
+      <p class="lead">
+        Пройдите сценарии по порядку. Каждый начинается на странице «Сводка». Отметьте сценарий,
+        когда результат совпал с ожиданием.
+      </p>
+      <RouterLink class="button-primary" to="/">Перейти к сводке</RouterLink>
+    </div>
 
     <section>
       <h2>Сценарии проверки</h2>
       <div class="toolbar">
-        <p>Проверено {{ checkedCount }} из {{ scenarios.length }}</p>
-        <button type="button" class="button-primary" @click="resetMarks">Сбросить отметки</button>
+        <div class="progress-wrap">
+          <label for="check-progress">Проверено {{ checkedCount }} из {{ scenarios.length }}</label>
+          <progress id="check-progress" :value="checkedCount" :max="scenarios.length" />
+        </div>
+        <button type="button" class="button-secondary" @click="resetMarks">Сбросить отметки</button>
       </div>
       <p v-if="resetStatus" class="status" role="status">{{ resetStatus }}</p>
-      <article v-for="scenario in scenarios" :key="scenario.id" class="scenario">
-        <h3>{{ scenario.title }}</h3>
-        <p v-if="scenario.needsAi && !aiReady" class="needs-ai">Нужен ИИ</p>
-        <ol>
-          <li v-for="step in scenario.steps" :key="step">{{ step }}</li>
-        </ol>
-        <h4>Что должно получиться</h4>
-        <ul>
-          <li v-for="item in scenario.expected" :key="item">{{ item }}</li>
-        </ul>
-        <label class="check">
-          <input
-            type="checkbox"
-            :checked="checkedIds.includes(scenario.id)"
-            @change="onToggle(scenario.id, $event)"
-          />
-          Проверено
-        </label>
-      </article>
+      <div class="scenarios">
+        <article
+          v-for="(scenario, index) in scenarios"
+          :key="scenario.id"
+          class="scenario"
+          :class="{ done: checkedIds.includes(scenario.id) }"
+        >
+          <div class="scenario-head">
+            <span class="number" aria-hidden="true">{{ String(index + 1).padStart(2, '0') }}</span>
+            <h3>{{ scenario.title }}</h3>
+          </div>
+          <p v-if="scenario.needsAi && !aiReady" class="needs-ai">Нужен ИИ</p>
+          <ol>
+            <li v-for="step in scenario.steps" :key="step">{{ step }}</li>
+          </ol>
+          <h4>Что должно получиться</h4>
+          <ul>
+            <li v-for="item in scenario.expected" :key="item">{{ item }}</li>
+          </ul>
+          <label class="check">
+            <input
+              type="checkbox"
+              :checked="checkedIds.includes(scenario.id)"
+              @change="onToggle(scenario.id, $event)"
+            />
+            Проверено
+          </label>
+        </article>
+      </div>
     </section>
 
     <section>
@@ -231,16 +251,95 @@ section h2,
   margin: 0;
 }
 
-.toolbar {
+.intro {
+  display: flex;
+  flex-direction: column;
   align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.intro h1,
+.lead {
+  margin: 0;
+}
+
+.lead {
+  max-width: 44rem;
+  color: var(--color-muted);
+}
+
+.toolbar {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.progress-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  flex: 1 1 16rem;
+  max-width: 28rem;
+}
+
+.progress-wrap label {
+  font-weight: 700;
+  color: var(--color-heading);
+}
+
+progress {
+  width: 100%;
+  height: 0.6rem;
+  accent-color: var(--color-primary);
+}
+
+.scenarios {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.scenario-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+
+.number {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.scenario ol,
+.scenario ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.scenario .check {
+  margin-top: auto;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+  font-weight: 700;
+}
+
+.scenario.done {
+  border-color: var(--color-success-fg);
+  background: var(--color-success-bg);
 }
 
 .scenario,
 .reviews {
   padding: var(--space-4);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  background: var(--color-surface);
+  border-radius: var(--radius-card);
+  background: var(--color-card);
+}
+
+@media (min-width: 56rem) {
+  .scenarios {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .reviews {

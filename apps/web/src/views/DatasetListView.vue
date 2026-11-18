@@ -145,7 +145,13 @@ function fail(reason: unknown): void {
 
 <template>
   <main class="page">
-    <h1>Наборы случаев</h1>
+    <div class="intro">
+      <h1>Наборы случаев</h1>
+      <p class="lead">
+        Набор — это несколько случаев из CRM вместе с перепиской. Примеры из задания менять нельзя:
+        сделайте копию и меняйте её.
+      </p>
+    </div>
     <button type="button" class="button-primary" :disabled="busy" @click="create">
       Создать набор
     </button>
@@ -166,10 +172,13 @@ function fail(reason: unknown): void {
     </p>
     <div v-else class="list">
       <article v-for="item in store.items" :key="item.id" class="card">
-        <h2>{{ item.title }}</h2>
-        <p>{{ casesCountText(item.casesCount) }}</p>
-        <p v-if="item.isDemo"><span class="badge">Пример</span></p>
-        <p>Изменён: {{ formatMsk(item.updatedAt) }}</p>
+        <div class="card-head">
+          <h2>{{ item.title }}</h2>
+          <span v-if="item.isDemo" class="badge">Пример</span>
+        </div>
+        <p class="meta">
+          {{ casesCountText(item.casesCount) }} · Изменён: {{ formatMsk(item.updatedAt) }}
+        </p>
         <div class="actions">
           <RouterLink class="button-secondary" :to="{ name: 'dataset', params: { id: item.id } }">
             Открыть
@@ -212,8 +221,37 @@ function fail(reason: unknown): void {
 
 .page h1,
 .card h2,
-.empty {
+.empty,
+.lead {
   margin: 0;
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.lead {
+  max-width: 44rem;
+  color: var(--color-muted);
+}
+
+.card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.meta {
+  color: var(--color-muted);
+  font-size: var(--font-size-sm);
+}
+
+.actions {
+  margin-top: auto;
+  padding-top: var(--space-2);
 }
 
 .page > .button-primary,
@@ -236,8 +274,8 @@ function fail(reason: unknown): void {
   min-width: 0;
   padding: var(--space-4);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  background: var(--color-surface);
+  border-radius: var(--radius-card);
+  background: var(--color-card);
 }
 
 .card h2 {
@@ -265,5 +303,12 @@ function fail(reason: unknown): void {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
+}
+
+@media (min-width: 48rem) {
+  .list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 </style>

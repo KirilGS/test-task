@@ -509,8 +509,8 @@ function onPasteInput(): void {
   min-width: 0;
   padding: var(--space-3) var(--space-4);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  background: var(--color-surface);
+  border-radius: var(--radius-card);
+  background: var(--color-card);
 }
 
 .case-block summary {

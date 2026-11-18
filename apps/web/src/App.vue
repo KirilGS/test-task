@@ -26,7 +26,10 @@ const footerText = computed(() => {
   </div>
   <div v-else class="shell">
     <header class="header">
-      <p class="brand">Сводка для support-отдела</p>
+      <p class="brand">
+        <span class="mark" aria-hidden="true">РМ</span>
+        <span class="brand-name">Руссмаркет</span>
+      </p>
       <nav class="nav" aria-label="Разделы">
         <RouterLink to="/">Сводка</RouterLink>
         <RouterLink to="/datasets">Наборы случаев</RouterLink>
@@ -35,9 +38,18 @@ const footerText = computed(() => {
         <RouterLink to="/ai">Подключение ИИ</RouterLink>
       </nav>
     </header>
-    <p class="warning">Это демонстрация. Не вводите настоящие персональные данные.</p>
+    <p class="warning">
+      <svg class="warning-icon" viewBox="0 0 16 16" aria-hidden="true">
+        <circle cx="8" cy="8" r="6.25" fill="none" stroke="currentColor" stroke-width="1.5" />
+        <path d="M8 7.2v3.6M8 5.2v.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+      </svg>
+      Это демонстрация. Не вводите настоящие персональные данные.
+    </p>
     <RouterView />
-    <footer class="footer">{{ footerText }}</footer>
+    <footer class="footer">
+      <p class="footer-mark">Руссмаркет / Digital</p>
+      <p class="footer-status">{{ footerText }}</p>
+    </footer>
   </div>
 </template>
 
@@ -54,10 +66,10 @@ const footerText = computed(() => {
 }
 
 .shell {
-  width: min(100%, 1440px);
+  width: min(100% - 2rem, 72rem);
   min-height: 100vh;
   margin: 0 auto;
-  padding: var(--space-4);
+  padding: var(--space-5) 0 var(--space-4);
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
@@ -69,45 +81,101 @@ const footerText = computed(() => {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   margin: 0;
   color: var(--color-heading);
-  font-size: var(--font-size-lg);
+}
+
+.mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.55rem;
+  background: var(--color-heading);
+  color: var(--color-on-primary);
+  font-size: 0.8rem;
   font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.brand-name {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .nav {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  gap: var(--space-1) var(--space-3);
 }
 
 .nav a {
-  color: var(--color-primary);
+  color: var(--color-muted);
   text-decoration: none;
-  padding: 0.35rem 0.6rem;
-  border-radius: var(--radius);
+  padding: 0.35rem 0;
+  border-bottom: 2px solid transparent;
 }
 
 .nav a[aria-current='page'] {
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
 }
 
 .warning {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   margin: 0;
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--color-warning-border);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-note-border);
   border-radius: var(--radius);
-  background: var(--color-warning-bg);
-  color: var(--color-warning-fg);
+  background: var(--color-note-bg);
+  color: var(--color-heading);
+  font-size: var(--font-size-sm);
+}
+
+.warning-icon {
+  width: 1rem;
+  height: 1rem;
+  flex: none;
+  color: var(--color-primary);
 }
 
 .footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2);
   margin-top: auto;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
   color: var(--color-muted);
+  font-size: var(--font-size-sm);
+}
+
+.footer-mark {
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.footer-status {
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.footer p {
+  margin: 0;
   overflow-wrap: anywhere;
 }
 </style>

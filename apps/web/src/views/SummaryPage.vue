@@ -145,6 +145,7 @@ function syncSavedForm(): void {
   }
   datasetId.value = summary.datasetId
   momentValue.value = toInputValue(summary.snapshotAt)
+  useAi.value = summary.mode === 'ai' && aiReady.value
 }
 
 function openSaved(): void {
@@ -279,7 +280,13 @@ onMounted(() => {
 
 <template>
   <main class="page">
-    <h1>Сводка</h1>
+    <div class="intro">
+      <h1>Сводка</h1>
+      <p class="lead">
+        Выберите набор случаев и нажмите «Сформировать сводку». Вы увидите, какие случаи требуют
+        действий и с чего начать.
+      </p>
+    </div>
 
     <form class="settings" @submit.prevent="build">
       <div class="pair">
@@ -291,7 +298,7 @@ onMounted(() => {
               {{ item.title }}
             </option>
           </select>
-          <p v-if="datasetsStore.listLoading" role="status">Загружаем наборы…</p>
+          <p v-if="datasetsStore.listLoading" class="hint" role="status">Загружаем наборы…</p>
           <p v-if="datasetFieldError" class="field-error">{{ datasetFieldError }}</p>
         </div>
         <div class="field">
@@ -302,12 +309,15 @@ onMounted(() => {
         </div>
       </div>
 
-      <div class="field">
+      <div class="ai-option" :class="{ 'ai-option-off': !aiReady }">
         <label class="check" for="use-ai">
           <input id="use-ai" v-model="useAi" type="checkbox" :disabled="!aiReady" />
           Читать переписку с помощью ИИ
         </label>
-        <p v-if="!aiReady" class="hint">
+        <p v-if="aiReady" class="hint">
+          ИИ найдёт в сообщениях факты. Срочность всё равно считают правила по данным CRM.
+        </p>
+        <p v-else class="hint">
           ИИ не подключён: сообщения будут показаны для ручного чтения.
           <RouterLink to="/ai">Подключить ИИ</RouterLink>
         </p>
@@ -338,21 +348,36 @@ onMounted(() => {
     </p>
 
     <template v-if="visibleSummary">
-      <section class="start">
+      <section class="start" :class="first ? `start-${first.priority}` : 'start-calm'">
         <h2>С чего начать</h2>
         <template v-if="first">
-          <p class="start-id">{{ first.caseId }}</p>
-          <p>{{ typeLabel(first.caseType) }}</p>
-          <PriorityBadge :priority="first.priority" />
+          <div class="start-head">
+            <p class="start-id">{{ first.caseId }}</p>
+            <p class="start-type">{{ typeLabel(first.caseType) }}</p>
+            <PriorityBadge :priority="first.priority" />
+          </div>
           <p v-if="first.nextSteps[0]" class="start-step">{{ first.nextSteps[0] }}</p>
         </template>
         <p v-else>Срочных случаев нет.</p>
       </section>
 
-      <p class="stats">
-        Требуют действий: {{ actionable.length }} · Без действий: {{ quiet.length }} · Режим:
-        {{ modeLabel(visibleSummary.mode) }} · Момент: {{ formatMsk(visibleSummary.snapshotAt) }}
-      </p>
+      <div class="result-bar">
+        <ul class="stats" aria-label="Итог сводки">
+          <li class="stat">Требуют действий: {{ actionable.length }}</li>
+          <li class="stat">Без действий: {{ quiet.length }}</li>
+          <li class="stat">Режим: {{ modeLabel(visibleSummary.mode) }}</li>
+          <li class="stat">Момент: {{ formatMsk(visibleSummary.snapshotAt) }}</li>
+        </ul>
+        <div class="export">
+          <button type="button" class="button-secondary" @click="copySummary">
+            {{ copied ? 'Скопировано' : 'Скопировать текст сводки' }}
+          </button>
+          <button type="button" class="button-secondary" @click="downloadSummary">
+            Скачать файл
+          </button>
+        </div>
+      </div>
+      <AppNotice v-if="copyError" kind="error" :message="copyError" />
 
       <div v-if="visibleSummary.warnings.length" class="warnings" role="status">
         <p v-for="(warning, index) in visibleSummary.warnings" :key="`${warning}-${index}`">
@@ -361,27 +386,31 @@ onMounted(() => {
       </div>
 
       <p v-if="summaryStore.savingFeedback" role="status">Сохраняем отзыв…</p>
-      <div class="cards">
-        <CaseCard
-          v-for="item in actionable"
-          :key="item.caseId"
-          :assessment="item"
-          :claims="claimsFor(item.caseId)"
-          :rejected="rejectedFor(item.caseId)"
-          :rules="metaStore.meta?.rules ?? []"
-          :saved="reviewSaved(item.caseId)"
-          :saving="summaryStore.savingFeedback"
-          @correct="sendCorrect(item.caseId)"
-          @wrong="sendWrong(item.caseId, $event)"
-        />
-      </div>
+      <section v-if="actionable.length" class="group">
+        <h2>Требуют действий · {{ actionable.length }}</h2>
+        <div class="cards">
+          <CaseCard
+            v-for="item in actionable"
+            :key="item.caseId"
+            :assessment="item"
+            :claims="claimsFor(item.caseId)"
+            :rejected="rejectedFor(item.caseId)"
+            :rules="metaStore.meta?.rules ?? []"
+            :saved="reviewSaved(item.caseId)"
+            :saving="summaryStore.savingFeedback"
+            @correct="sendCorrect(item.caseId)"
+            @wrong="sendWrong(item.caseId, $event)"
+          />
+        </div>
+      </section>
 
-      <section v-if="quiet.length">
-        <h2>Не требуют действий</h2>
+      <section v-if="quiet.length" class="group">
+        <h2>Не требуют действий · {{ quiet.length }}</h2>
         <ul class="quiet">
-          <li v-for="item in quiet" :key="item.caseId">
-            {{ item.caseId }} · {{ typeLabel(item.caseType) }} —
-            {{ item.crmFacts[0] ?? 'Дополнительных сведений нет.' }}
+          <li v-for="item in quiet" :key="item.caseId" class="quiet-item">
+            <span class="quiet-id">{{ item.caseId }}</span>
+            <span class="quiet-type">{{ typeLabel(item.caseType) }}</span>
+            <span class="quiet-fact">{{ item.crmFacts[0] ?? 'Дополнительных сведений нет.' }}</span>
           </li>
         </ul>
       </section>
@@ -390,10 +419,19 @@ onMounted(() => {
         <h2>Что-то пропущено?</h2>
         <p v-if="missedSaved" role="status">Спасибо, отзыв сохранён</p>
         <template v-else>
-          <button type="button" class="button-secondary" @click="missedOpen = true">
-            Что-то пропущено?
+          <p v-if="!missedOpen" class="hint">
+            Если в сводке нет важного случая или факта, напишите об этом. Отзыв увидят на странице
+            «Проверка».
+          </p>
+          <button
+            v-if="!missedOpen"
+            type="button"
+            class="button-secondary"
+            @click="missedOpen = true"
+          >
+            Написать, что пропущено
           </button>
-          <form v-if="missedOpen" class="missed-form" @submit.prevent="sendMissed">
+          <form v-else class="missed-form" @submit.prevent="sendMissed">
             <div class="field">
               <label for="missed-case">Номер случая (необязательно)</label>
               <input id="missed-case" v-model="missedCaseId" type="text" />
@@ -403,20 +441,21 @@ onMounted(() => {
               <textarea id="missed-comment" v-model="missedComment" rows="3" required />
               <p v-if="missedError" class="field-error">{{ missedError }}</p>
             </div>
-            <button type="submit" class="button-secondary" :disabled="summaryStore.savingFeedback">
-              Отправить
-            </button>
+            <div class="form-actions">
+              <button
+                type="submit"
+                class="button-secondary"
+                :disabled="summaryStore.savingFeedback"
+              >
+                Отправить
+              </button>
+              <button type="button" class="button-secondary" @click="missedOpen = false">
+                Отмена
+              </button>
+            </div>
           </form>
         </template>
       </section>
-
-      <div class="export">
-        <button type="button" class="button-secondary" @click="copySummary">
-          {{ copied ? 'Скопировано' : 'Скопировать текст сводки' }}
-        </button>
-        <button type="button" class="button-secondary" @click="downloadSummary">Скачать файл</button>
-      </div>
-      <AppNotice v-if="copyError" kind="error" :message="copyError" />
     </template>
 
     <section v-if="datasetId" class="history">
@@ -443,36 +482,72 @@ onMounted(() => {
 .page {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-5);
   min-width: 0;
 }
 
+.intro h1,
+.lead,
+.hint,
+.field-error,
+.empty,
+.start-step,
+.start-id,
+.start-type,
+.warnings p {
+  margin: 0;
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.lead {
+  max-width: 44rem;
+  color: var(--color-muted);
+}
+
 .settings,
-.start,
 .warnings,
 .missed,
 .history {
   min-width: 0;
   padding: var(--space-4);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  background: var(--color-surface);
+  border-radius: var(--radius-card);
+  background: var(--color-card);
 }
 
 .settings,
-.pair,
 .field,
 .missed-form,
 .cards,
-.export {
+.group,
+.missed {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
 }
 
+.settings {
+  gap: var(--space-4);
+}
+
 .pair {
   display: grid;
   gap: var(--space-4);
+}
+
+.field {
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.field label {
+  font-weight: 700;
+  color: var(--color-heading);
 }
 
 .field input,
@@ -487,28 +562,40 @@ onMounted(() => {
   background: var(--color-surface);
 }
 
-.field input[type='checkbox'] {
-  width: 1.25rem;
-  min-height: 1.25rem;
-  padding: 0;
+.ai-option {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
 }
 
-.settings .button-primary {
-  align-self: flex-start;
+.ai-option-off {
+  background: transparent;
 }
 
 .check {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  font-weight: 700;
+  color: var(--color-heading);
 }
 
-.hint,
-.field-error,
-.empty,
-.stats,
-.start-step {
-  margin: 0;
+.check input {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: none;
+}
+
+.ai-option .hint {
+  padding-left: calc(1.25rem + var(--space-2));
+}
+
+.settings .button-primary {
+  align-self: flex-start;
 }
 
 .hint {
@@ -520,10 +607,99 @@ onMounted(() => {
   color: var(--color-error-fg);
 }
 
-.start-id {
+.empty {
+  padding: var(--space-5) var(--space-4);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-card);
+  color: var(--color-muted);
+  text-align: center;
+}
+
+.result-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
   margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stat {
+  padding: 0.2rem 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  font-size: var(--font-size-sm);
+}
+
+.export,
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.start {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--color-border);
+  border-left: 6px solid var(--color-priority-none-bg);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.start-critical {
+  border-left-color: var(--color-priority-critical-bg);
+}
+
+.start-high {
+  border-left-color: var(--color-priority-high-bg);
+}
+
+.start-medium {
+  border-left-color: var(--color-warning-border);
+}
+
+.start h2 {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: var(--font-size-sm);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.start-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.start-id {
+  color: var(--color-heading);
   font-size: var(--font-size-xl);
   font-weight: 700;
+  line-height: 1.2;
+}
+
+.start-type {
+  color: var(--color-muted);
+}
+
+.start-step {
+  font-size: var(--font-size-lg);
+  color: var(--color-heading);
 }
 
 .warnings {
@@ -532,25 +708,63 @@ onMounted(() => {
   border-color: var(--color-warning-border);
 }
 
-.warnings p,
-.quiet,
-.history ul {
+.group h2,
+.missed h2,
+.history h2 {
   margin: 0;
-}
-
-.export,
-.head-actions {
-  flex-direction: row;
-  flex-wrap: wrap;
-}
-
-h2 {
-  margin: 0 0 var(--space-3);
   font-size: var(--font-size-lg);
 }
 
-ul {
+.quiet {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.quiet-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-card);
+}
+
+.quiet-id {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.quiet-type {
+  color: var(--color-muted);
+  font-size: var(--font-size-sm);
+}
+
+.quiet-fact {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.missed {
+  align-items: flex-start;
+}
+
+.missed-form {
+  align-self: stretch;
+}
+
+.history ul {
+  margin: var(--space-3) 0 0;
   padding-left: 1.25rem;
+}
+
+.history p {
+  margin: var(--space-3) 0 0;
 }
 
 @media (min-width: 40rem) {

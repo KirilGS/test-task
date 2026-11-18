@@ -675,8 +675,8 @@ function closeConfirm(): void {
   gap: var(--space-3);
   padding: var(--space-4);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  background: var(--color-surface);
+  border-radius: var(--radius-card);
+  background: var(--color-card);
 }
 
 .field input {
@@ -704,7 +704,8 @@ function closeConfirm(): void {
   margin: 0;
   padding: var(--space-4);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-card);
+  background: var(--color-card);
 }
 
 .choices {
@@ -731,8 +732,8 @@ function closeConfirm(): void {
 .developer {
   padding: var(--space-3) var(--space-4);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  background: var(--color-surface);
+  border-radius: var(--radius-card);
+  background: var(--color-card);
 }
 
 .developer summary {

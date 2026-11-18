@@ -123,9 +123,18 @@ function apply(view: {
 
 <template>
   <main class="page">
-    <h1>Подключение ИИ</h1>
+    <div class="intro">
+      <h1>Подключение ИИ</h1>
+      <p class="lead">
+        ИИ читает сообщения из чатов и находит в них факты. Без него сводка тоже строится, но
+        сообщения придётся прочитать самому. Ключ и название модели выдаёт разработчик.
+      </p>
+    </div>
     <p v-if="loading" role="status">Загружаем…</p>
     <template v-else>
+      <p class="state" :class="configured ? 'state-on' : 'state-off'">
+        {{ configured ? 'Сейчас ИИ подключён' : 'Сейчас ИИ не подключён' }}
+      </p>
       <p v-if="problem" class="field-error" role="alert">{{ problem }}</p>
       <p v-if="status" role="status">{{ status }}</p>
       <form class="card" @submit.prevent="save">
@@ -199,8 +208,8 @@ function apply(view: {
 .card {
   padding: var(--space-4);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  background: var(--color-surface);
+  border-radius: var(--radius-card);
+  background: var(--color-card);
 }
 
 .field input,
@@ -214,13 +223,56 @@ function apply(view: {
   background: var(--color-surface);
 }
 
-.card .button-primary {
+.card {
+  max-width: 40rem;
+}
+
+.field label {
+  font-weight: 700;
+  color: var(--color-heading);
+}
+
+.card .button-primary,
+.page > .button-secondary {
   align-self: flex-start;
 }
 
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.intro h1,
+.lead,
+.state,
 .hint,
 .field-error {
   margin: 0;
+}
+
+.lead {
+  max-width: 44rem;
+  color: var(--color-muted);
+}
+
+.state {
+  align-self: flex-start;
+  padding: 0.2rem 0.75rem;
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+}
+
+.state-on {
+  background: var(--color-success-bg);
+  color: var(--color-success-fg);
+}
+
+.state-off {
+  background: var(--color-card);
+  color: var(--color-muted);
+  border: 1px solid var(--color-border);
 }
 
 .hint {

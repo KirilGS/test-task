@@ -123,7 +123,11 @@ describe('страница «Проверка»', () => {
     const element = again.find('input[type="checkbox"]').element
     expect(element instanceof HTMLInputElement && element.checked).toBe(true)
 
-    await again.get('button.button-primary').trigger('click')
+    const reset = again.findAll('button').find((button) => button.text() === 'Сбросить отметки')
+    if (reset === undefined) {
+      throw new Error('Ожидалась кнопка «Сбросить отметки»')
+    }
+    await reset.trigger('click')
     expect(again.text()).toContain('Отметки сброшены.')
     expect(again.text()).toContain('Проверено 0 из 9')
     expect(localStorage.getItem(STORAGE_KEY)).toBeNull()
