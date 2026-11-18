@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { describe, expect, it } from 'vitest'
+import { createMemoryHistory, createRouter } from 'vue-router'
 import type { MetaResponse } from '@/api/types'
 import { useMetaStore } from '@/stores/meta'
 import HowView from '@/views/HowView.vue'
@@ -52,10 +53,19 @@ describe('страница «Как это работает»', () => {
     meta.meta = metaBody
     meta.loading = false
 
-    const wrapper = mount(HowView, { global: { plugins: [pinia] } })
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [{ path: '/', name: 'summary', component: HowView }],
+    })
+    const wrapper = mount(HowView, { global: { plugins: [pinia, router] } })
     const text = wrapper.text()
 
     expect(text).toContain('Как устроена обработка')
+    expect(text).toContain('Как читать сводку')
+    expect(text).toContain('С чего начать')
+    expect(text).toContain('Критично')
+    expect(text).toContain('Поставка карт')
+    expect(wrapper.get('a.button-primary').text()).toBe('Открыть сводку')
     expect(text).toContain('Данные из CRM и сообщения из чатов')
     expect(text).toContain('ИИ находит в сообщениях факты')
     expect(text).toContain('Правила считают срочность по CRM')
@@ -67,7 +77,7 @@ describe('страница «Как это работает»', () => {
     expect(text).toContain('Как читать переписку')
     expect(text).toContain('Первый запуск')
     expect(text).toContain('Что проверено и что нет')
-    expect(text).toContain('Будет заполнено на этапе 10')
+    expect(text).toContain('Этот раздел ещё готовится')
     expect(wrapper.html()).not.toContain('<script')
   })
 })
