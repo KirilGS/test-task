@@ -13,6 +13,7 @@ import {
 import { ObjectId, type Collection, type WithId } from "mongodb";
 import { DatasetsService } from "../datasets/datasets.service";
 import { MONGO_DB } from "../mongo/mongo.tokens";
+import { AiSettingsService } from "../settings/ai-settings.service";
 import type { Db } from "mongodb";
 import { AiDailyLimit } from "./ai-daily-limit";
 import {
@@ -29,7 +30,8 @@ import type {
   SummaryView,
 } from "./summaries.types";
 
-const NOT_CONFIGURED = "ИИ не настроен на сервере. Сформируйте сводку без ИИ";
+const NOT_CONFIGURED =
+  "ИИ не подключён. Откройте «Подключение ИИ», введите ключ и модель, затем сформируйте сводку ещё раз";
 const SUMMARY_MISSING = "Сводка не найдена";
 const FEEDBACK_LIMIT = "Для этой сводки собрано максимальное число отзывов";
 
@@ -54,6 +56,7 @@ export class SummariesService implements OnModuleInit {
     @Inject(MONGO_DB) private readonly db: Db,
     private readonly datasets: DatasetsService,
     private readonly dailyLimit: AiDailyLimit,
+    private readonly settings: AiSettingsService,
     @Inject(AI_CONFIG) private readonly aiConfig: AiConfig | null,
     @Inject(AI_FETCH) private readonly fetchFn: typeof fetch,
   ) {}
@@ -70,7 +73,7 @@ export class SummariesService implements OnModuleInit {
     }
 
     const dataset = await this.datasets.get(parsed.data.datasetId);
-    const ai = this.aiFor(mode);
+    const ai = await this.aiFor(mode);
     const result = await buildSummary(
       {
         title: dataset.title,
@@ -207,15 +210,16 @@ export class SummariesService implements OnModuleInit {
     return toView(saved);
   }
 
-  private aiFor(mode: "ai" | "no-ai"): AiConfig | null {
+  private async aiFor(mode: "ai" | "no-ai"): Promise<AiConfig | null> {
     if (mode === "no-ai") {
       return null;
     }
-    if (this.aiConfig === null) {
+    const configured = this.aiConfig ?? (await this.settings.resolve());
+    if (configured === null) {
       this.fail(HttpStatus.BAD_REQUEST, NOT_CONFIGURED);
     }
     this.dailyLimit.take();
-    return this.aiConfig;
+    return configured;
   }
 
   private collection(): Collection<SummaryDocument> {

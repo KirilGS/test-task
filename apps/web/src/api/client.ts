@@ -1,6 +1,7 @@
 import type { DatasetInput } from '@support-summary/core'
 import {
   fieldErrorsFrom,
+  isAiSettingsView,
   isDatasetListItem,
   isDatasetView,
   isDeleted,
@@ -11,6 +12,8 @@ import {
 } from './parse'
 import type {
   ApiFailure,
+  AiSettingsInput,
+  AiSettingsView,
   DatasetListItem,
   DatasetUpdate,
   DatasetView,
@@ -118,6 +121,18 @@ function many<T>(value: unknown, check: (item: unknown) => item is T): T[] {
     items.push(item)
   }
   return items
+}
+
+export function getAiSettings(): Promise<AiSettingsView> {
+  return request('/api/ai-settings', 'GET').then((body) => one(body, isAiSettingsView))
+}
+
+export function saveAiSettings(input: AiSettingsInput): Promise<AiSettingsView> {
+  return request('/api/ai-settings', 'PUT', input).then((body) => one(body, isAiSettingsView))
+}
+
+export function clearAiSettings(): Promise<AiSettingsView> {
+  return request('/api/ai-settings', 'DELETE').then((body) => one(body, isAiSettingsView))
 }
 
 export function getMeta(): Promise<MetaResponse> {

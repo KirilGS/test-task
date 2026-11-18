@@ -37,6 +37,14 @@ const PROVIDER_LABEL: Record<AiProviderId, string> = {
   openrouter: "OpenRouter",
 };
 
+export function providerBaseUrl(provider: AiProviderId): string {
+  return PROVIDER_BASE_URL[provider];
+}
+
+export function providerLabel(provider: AiProviderId): string {
+  return PROVIDER_LABEL[provider];
+}
+
 export const envSchema = z
   .object({
   PORT: wholeNumber(3000, "Порт должен быть целым числом больше нуля"),
@@ -63,6 +71,7 @@ export const envSchema = z
     "Лимит запросов к ИИ в сутки должен быть целым числом больше нуля",
   ),
   DEMO_PASSWORD: optionalText,
+  SETTINGS_SECRET: optionalText,
   TRUST_PROXY: z.enum(["true", "false"], {
     error: "Параметр доверия к прокси может быть только true или false",
   }).default("false"),
@@ -137,6 +146,7 @@ export function validateEnv(config: Record<string, unknown>): AppEnv {
     AI_REQUESTS_PER_HOUR: blankToUndefined(config.AI_REQUESTS_PER_HOUR),
     AI_REQUESTS_PER_DAY: blankToUndefined(config.AI_REQUESTS_PER_DAY),
     DEMO_PASSWORD: blankToUndefined(config.DEMO_PASSWORD),
+    SETTINGS_SECRET: blankToUndefined(config.SETTINGS_SECRET),
     TRUST_PROXY: blankToUndefined(config.TRUST_PROXY),
     WEB_DIST_DIR:
       blankToUndefined(config.WEB_DIST_DIR) ?? path.join(root, "apps", "web", "dist"),

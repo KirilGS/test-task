@@ -1,10 +1,10 @@
 import { Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ThrottlerModule } from "@nestjs/throttler";
-import type { AiConfig } from "@support-summary/core";
-import { resolveAiConfig, type AppEnv } from "../config/env";
+import type { AppEnv } from "../config/env";
 import { DatasetsModule } from "../datasets/datasets.module";
 import { MongoModule } from "../mongo/mongo.module";
+import { AiSettingsModule } from "../settings/ai-settings.module";
 import { AiDailyLimit } from "./ai-daily-limit";
 import { SummariesController } from "./summaries.controller";
 import { SummariesService } from "./summaries.service";
@@ -16,6 +16,7 @@ const HOUR_MS = 60 * 60 * 1000;
   imports: [
     MongoModule,
     DatasetsModule,
+    AiSettingsModule,
     ThrottlerModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService<AppEnv, true>) => ({
@@ -37,18 +38,7 @@ const HOUR_MS = 60 * 60 * 1000;
     AiDailyLimit,
     {
       provide: AI_CONFIG,
-      inject: [ConfigService],
-      useFactory: (config: ConfigService<AppEnv, true>): AiConfig | null =>
-        resolveAiConfig({
-          AI_PROVIDER: config.get("AI_PROVIDER", { infer: true }),
-          OPENAI_API_KEY: config.get("OPENAI_API_KEY", { infer: true }),
-          OPENAI_MODEL: config.get("OPENAI_MODEL", { infer: true }),
-          ANTHROPIC_API_KEY: config.get("ANTHROPIC_API_KEY", { infer: true }),
-          ANTHROPIC_MODEL: config.get("ANTHROPIC_MODEL", { infer: true }),
-          OPENROUTER_API_KEY: config.get("OPENROUTER_API_KEY", { infer: true }),
-          OPENROUTER_MODEL: config.get("OPENROUTER_MODEL", { infer: true }),
-          AI_TIMEOUT_MS: config.get("AI_TIMEOUT_MS", { infer: true }),
-        }),
+      useValue: null,
     },
     {
       provide: AI_FETCH,

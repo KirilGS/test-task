@@ -145,6 +145,7 @@ describe('кнопка расчёта', () => {
       routes: [
         { path: '/', name: 'summary', component: SummaryPage },
         { path: '/summaries/:id', name: 'summary-saved', component: SummaryPage },
+        { path: '/ai', name: 'ai', component: SummaryPage },
       ],
     })
     await router.push('/')

@@ -20,6 +20,22 @@ export type RuleInfo = {
   description: string
 }
 
+export type AiProviderId = 'openai' | 'claude' | 'openrouter'
+
+export type AiSettingsView = {
+  configured: boolean
+  provider: AiProviderId | null
+  providerLabel: string | null
+  model: string | null
+  problem: string | null
+}
+
+export type AiSettingsInput = {
+  provider: AiProviderId
+  apiKey: string
+  model: string
+}
+
 export type MetaResponse = {
   aiAvailable: boolean
   aiModel: string | null

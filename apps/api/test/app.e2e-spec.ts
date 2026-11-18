@@ -454,6 +454,70 @@ describe("сервер", () => {
     expect(isRecord(remark) && remark.caseId).toBe("С-24");
   });
 
+  it("хранит ключ закрытым и подставляет его только в запрос к ИИ", async () => {
+    const marker = "stored-key-e2e-marker";
+    const seen: string[] = [];
+    const fetchFn: typeof fetch = async (_input, init) => {
+      const headers = new Headers(init?.headers);
+      const authorization = headers.get("authorization");
+      if (authorization !== null) {
+        seen.push(authorization);
+      }
+      return new Response(
+        JSON.stringify({ choices: [{ message: { content: '{"claims":[]}' } }] }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      );
+    };
+    const moduleFixture = await Test.createTestingModule({ imports: [AppModule] })
+      .overrideProvider(AI_FETCH)
+      .useValue(fetchFn)
+      .compile();
+    const storedApp = moduleFixture.createNestApplication<NestFastifyApplication>(
+      new FastifyAdapter(),
+    );
+    configureApp(storedApp);
+    await storedApp.init();
+    await storedApp.getHttpAdapter().getInstance().ready();
+    try {
+      const saved = await storedApp.inject({
+        method: "PUT",
+        url: "/api/ai-settings",
+        headers: withAuth(),
+        payload: { provider: "openai", apiKey: marker, model: "stored-model" },
+      });
+      expect(saved.statusCode).toBe(200);
+      const view = readJson(saved);
+      expect(JSON.stringify(view)).not.toContain(marker);
+      expect(isRecord(view) && view.model).toBe("stored-model");
+
+      const client = new MongoClient(TEST_URI);
+      await client.connect();
+      try {
+        const raw = await client
+          .db(databaseName(TEST_URI))
+          .collection<{ _id: string }>("ai_settings")
+          .findOne({ _id: "ai" });
+        expect(raw).not.toBeNull();
+        expect(JSON.stringify(raw)).not.toContain(marker);
+      } finally {
+        await client.close();
+      }
+
+      const task = await demoTask(storedApp);
+      const summary = await storedApp.inject({
+        method: "POST",
+        url: "/api/summaries/ai",
+        headers: withAuth(),
+        payload: { datasetId: task.id },
+      });
+      expect(summary.statusCode).toBe(201);
+      expect(seen).toContain(`Bearer ${marker}`);
+      expect(JSON.stringify(readJson(summary))).not.toContain(marker);
+    } finally {
+      await storedApp.close();
+    }
+  });
+
   it("не показывает фиктивный ключ в справочнике", async () => {
     const response = await app.inject({ method: "GET", url: "/api/meta", headers: withAuth() });
     expect(response.statusCode).toBe(200);

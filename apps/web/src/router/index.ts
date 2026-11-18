@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import AiSettingsView from '@/views/AiSettingsView.vue'
 import CheckView from '@/views/CheckView.vue'
 import DatasetEditorView from '@/views/DatasetEditorView.vue'
 import DatasetListView from '@/views/DatasetListView.vue'
@@ -15,6 +16,7 @@ const router = createRouter({
     { path: '/datasets/:id', name: 'dataset', component: DatasetEditorView },
     { path: '/how', name: 'how', component: HowView },
     { path: '/check', name: 'check', component: CheckView },
+    { path: '/ai', name: 'ai', component: AiSettingsView },
     { path: '/:pathMatch(.*)*', name: 'not-found', component: NotFoundView },
   ],
 })

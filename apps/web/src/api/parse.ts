@@ -9,6 +9,8 @@ import type {
   SupportCase,
 } from '@support-summary/core'
 import type {
+  AiProviderId,
+  AiSettingsView,
   DatasetListItem,
   DatasetView,
   MetaResponse,
@@ -152,6 +154,29 @@ function isAuthorLabels(value: unknown): value is Record<Author, string> {
     typeof value.recipient === 'string' &&
     typeof value.other === 'string'
   )
+}
+
+const AI_PROVIDERS: readonly AiProviderId[] = ['openai', 'claude', 'openrouter']
+
+export function isAiSettingsView(value: unknown): value is AiSettingsView {
+  if (!isRecord(value)) {
+    return false
+  }
+  const providerOk = value.provider === null || isAiProvider(value.provider)
+  const labelOk = value.providerLabel === null || typeof value.providerLabel === 'string'
+  const modelOk = value.model === null || typeof value.model === 'string'
+  const problemOk = value.problem === null || typeof value.problem === 'string'
+  return (
+    typeof value.configured === 'boolean' &&
+    providerOk &&
+    labelOk &&
+    modelOk &&
+    problemOk
+  )
+}
+
+function isAiProvider(value: unknown): value is AiProviderId {
+  return typeof value === 'string' && AI_PROVIDERS.some((item) => item === value)
 }
 
 export function isMetaResponse(value: unknown): value is MetaResponse {

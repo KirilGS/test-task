@@ -7,7 +7,7 @@ export class MetaController {
   constructor(private readonly meta: MetaService) {}
 
   @Get()
-  getMeta(): MetaResponse {
+  getMeta(): Promise<MetaResponse> {
     return this.meta.getMeta();
   }
 }

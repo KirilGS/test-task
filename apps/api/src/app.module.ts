@@ -8,6 +8,7 @@ import { DatasetsModule } from "./datasets/datasets.module";
 import { HealthController } from "./health.controller";
 import { MetaModule } from "./meta/meta.module";
 import { MongoModule } from "./mongo/mongo.module";
+import { AiSettingsModule } from "./settings/ai-settings.module";
 import { UnknownErrorFilter } from "./security/unknown-error.filter";
 import { SummariesModule } from "./summaries/summaries.module";
 
@@ -36,6 +37,7 @@ import { SummariesModule } from "./summaries/summaries.module";
       },
     }),
     MongoModule,
+    AiSettingsModule,
     DatasetsModule,
     SummariesModule,
     MetaModule,

@@ -32,6 +32,7 @@ const footerText = computed(() => {
         <RouterLink to="/datasets">Наборы случаев</RouterLink>
         <RouterLink to="/how">Как это работает</RouterLink>
         <RouterLink to="/check">Проверка</RouterLink>
+        <RouterLink to="/ai">Подключение ИИ</RouterLink>
       </nav>
     </header>
     <p class="warning">Это демонстрация. Не вводите настоящие персональные данные.</p>

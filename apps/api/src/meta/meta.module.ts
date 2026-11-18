@@ -1,12 +1,13 @@
 import { Module } from "@nestjs/common";
 import { loadSystemPrompt } from "@support-summary/core";
+import { AiSettingsModule } from "../settings/ai-settings.module";
 import { SummariesModule } from "../summaries/summaries.module";
 import { MetaController } from "./meta.controller";
 import { MetaService } from "./meta.service";
 import { SYSTEM_PROMPT } from "./meta.tokens";
 
 @Module({
-  imports: [SummariesModule],
+  imports: [SummariesModule, AiSettingsModule],
   controllers: [MetaController],
   providers: [
     MetaService,

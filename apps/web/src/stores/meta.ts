@@ -34,5 +34,16 @@ export const useMetaStore = defineStore('meta', () => {
     return load()
   }
 
-  return { meta, loading, error, ensure, retry }
+  async function refresh(): Promise<void> {
+    try {
+      meta.value = await getMeta()
+      error.value = null
+    } catch (reason) {
+      if (meta.value === null) {
+        error.value = errorMessage(reason)
+      }
+    }
+  }
+
+  return { meta, loading, error, ensure, retry, refresh }
 })
